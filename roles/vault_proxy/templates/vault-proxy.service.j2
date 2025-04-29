@@ -1,0 +1,21 @@
+[Unit]
+Description="HashiCorp Vault Proxy"
+Documentation="https://developer.hashicorp.com/vault/docs"
+
+[Service]
+User=vault
+Group=vault
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+NoNewPrivileges=yes
+Environment="VAULT_ADDR={{ vault_proxy_vault_addr }}"
+Environment="VAULT_NAMESPACE={{ vault_proxy_vault_namespace }}"
+ExecStartPre=-/bin/bash -c '[ ! -f /etc/vault.d/secretID ] || [ ! -s /etc/vault.d/secretID ] && VAULT_TOKEN=$(cat /etc/vault.d/vault-token-via-agent) vault write -f -field=secret_id auth/approle/role/proxy/secret-id > /etc/vault.d/secretID'
+ExecStart=/bin/vault proxy -non-interactive -config=/etc/vault.d/proxy-config.hcl -log-level=debug -log-file=/etc/vault.d/log/
+ExecReload=/bin/kill --signal HUP
+KillMode=process
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

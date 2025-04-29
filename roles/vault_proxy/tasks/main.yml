@@ -1,0 +1,72 @@
+- name: Install yum-utils
+  ansible.builtin.dnf:
+    name: yum-utils
+    state: present
+
+- name: Add HashiCorp repository
+  ansible.builtin.yum_repository:
+    name: hashicorp
+    description: "HashiCorp Stable - $basearch"
+    baseurl: https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable
+    gpgcheck: true
+    repo_gpgcheck: true
+    enabled: true
+    gpgkey: https://rpm.releases.hashicorp.com/gpg
+
+- name: Install Vault Enterprise
+  ansible.builtin.dnf:
+    name: vault-enterprise
+    state: present
+
+- name: Create /etc/vault.d/ pid & log directories
+  ansible.builtin.file:
+    path: /etc/vault.d/{{ item }}
+    state: directory
+    owner: vault
+    group: vault
+    mode: '0744'
+  with_items:
+    - pid
+    - log
+  notify:
+    - Restart Vault Proxy
+
+- name: Create /etc/vault.d/roleID file
+  ansible.builtin.copy:
+    dest: /etc/vault.d/roleID
+    content: "{{ vault_proxy_role_id }}"
+    owner: vault
+    group: vault
+    mode: '0600'
+  notify:
+    - Restart Vault Proxy
+
+- name: Create /etc/vault.d/secretID file
+  ansible.builtin.copy:
+    dest: /etc/vault.d/secretID
+    content: "{{ vault_proxy_secret_id }}"
+    owner: vault
+    group: vault
+    mode: '0600'
+  notify:
+    - Restart Vault Proxy
+
+- name: Create /etc/vault.d/proxy-config.hcl file
+  ansible.builtin.copy:
+    src: files/proxy-config.hcl
+    dest: /etc/vault.d/proxy-config.hcl
+    owner: vault
+    group: vault
+    mode: '0644'
+  notify:
+    - Restart Vault Proxy
+
+- name: Create systemd service for Vault Proxy
+  ansible.builtin.template:
+    src: templates/vault-proxy.service.j2
+    dest: /etc/systemd/system/vault-proxy.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart Vault Proxy
