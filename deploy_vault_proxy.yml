@@ -1,0 +1,9 @@
+## vault_proxy example ansible role
+
+- name: Main Play
+  hosts: all
+  become: true
+  tasks:
+    - name: Deploy (or fix) vault proxy on RHEL9 VM.
+      ansible.builtin.import_role:
+        name: vault_proxy

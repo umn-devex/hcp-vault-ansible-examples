@@ -1,0 +1,14 @@
+vault_proxy_role_id: >-
+  {{
+    lookup('community.hashi_vault.vault_read',
+    'auth/approle/role/proxy/role-id').data['role_id']
+  }}
+vault_proxy_secret_id: >-
+  {{
+    lookup('community.hashi_vault.vault_write',
+    'auth/approle/role/proxy/secret-id').data['secret_id']
+  }}
+
+# Use private endpoint for RFC1918 IP'ed VM's. Use public endpoint for UMN public IP'ed VM's - https://docs.secm.oit.umn.edu/Architecture/vault_endpoints/
+vault_proxy_vault_addr: "<VAULT_ADDR>"
+vault_proxy_vault_namespace: "admin/<CESI>"

@@ -1,0 +1,6 @@
+- name: Restart Vault Proxy
+  ansible.builtin.systemd:
+    name: vault-proxy
+    state: restarted
+    enabled: true
+    daemon_reload: true
